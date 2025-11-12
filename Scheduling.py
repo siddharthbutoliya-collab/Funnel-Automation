@@ -16,38 +16,48 @@ service_account_json = os.getenv("SERVICE_ACCOUNT_JSON")
 if not sec or not service_account_json:
     raise ValueError("❌ Missing environment variables. Check GitHub secrets.")
 
-# Parse service account credentials
-service_info = json.loads(service_account_json)
-creds = Credentials.from_service_account_info(
-    service_info,
-    scopes=["https://www.googleapis.com/auth/spreadsheets",
-            "https://www.googleapis.com/auth/drive"]
-)
-gc = gspread.authorize(creds)
+# Load and parse service account credentials
+try:
+    service_info = json.loads(service_account_json)
+    creds = Credentials.from_service_account_info(
+        service_info,
+        scopes=[
+            "https://www.googleapis.com/auth/spreadsheets",
+            "https://www.googleapis.com/auth/drive"
+        ]
+    )
+    gc = gspread.authorize(creds)
+except Exception as e:
+    raise RuntimeError(f"❌ Google Auth failed: {e}")
 
 # -------------------- CONFIG --------------------
-METABASE_HEADERS = {
-    'Content-Type': 'application/json'
-}
+METABASE_URL = "https://metabase-lierhfgoeiwhr.newtonschool.co"
+METABASE_HEADERS = {'Content-Type': 'application/json'}
 
-res = requests.post(
-    'https://metabase-lierhfgoeiwhr.newtonschool.co/api/session',
-    headers={"Content-Type": "application/json"},
-    json={"username": "prabhat.kumar@newtonschool.co", "password": sec}
-)
-res.raise_for_status()
-token = res.json()['id']
-METABASE_HEADERS['X-Metabase-Session'] = token
-print(f"✅ Metabase session created: {token}")
+# Create Metabase session
+try:
+    res = requests.post(
+        f"{METABASE_URL}/api/session",
+        headers={"Content-Type": "application/json"},
+        json={"username": "prabhat.kumar@newtonschool.co", "password": sec}
+    )
+    res.raise_for_status()
+    token = res.json()['id']
+    METABASE_HEADERS['X-Metabase-Session'] = token
+    print(f"✅ Metabase session created: {token}")
+except Exception as e:
+    raise RuntimeError(f"❌ Metabase authentication failed: {e}")
 
+# -------------------- SHEET CONFIG --------------------
 SHEET_KEY = '1QCyzrW-Jd5Ny43F7ck7Pk2kJa4nVf7a1KovPj3d8S4c'
 SHEET1_NAME = "Helper StageChange Dump"
 SHEET2_NAME = "Helper Call Dump"
-SHEET3_NAME = 'Created on Leads'
+SHEET3_NAME = "Created on Leads"
 SHEET_PIVOT = "New_DS_Summary"
 
 # -------------------- UTILITIES --------------------
 def fetch_with_retry(url, headers, retries=3, delay=15):
+    """Fetch JSON data from Metabase with retry logic"""
     for attempt in range(1, retries + 1):
         try:
             r = requests.post(url, headers=headers, timeout=120)
@@ -60,24 +70,43 @@ def fetch_with_retry(url, headers, retries=3, delay=15):
             else:
                 raise
 
-def update_with_retry(worksheet, df, retries=3, delay=20):
+def safe_update_range(worksheet, df, data_range="A:T", retries=3, delay=20):
+    """Safely updates A:T without touching U:Z (which contain formulas)."""
+    print(f"🔄 Preparing to update {worksheet.title} ({data_range})")
+
+    # Backup existing A:T values
+    backup_data = worksheet.get(data_range)
+
     for attempt in range(1, retries + 1):
         try:
-            set_with_dataframe(worksheet, df, include_index=False, include_column_header=True)
-            print(f"✅ Updated: {worksheet.title}")
+            # Clear only A:T — your data area, not formulas
+            worksheet.batch_clear([data_range])
+
+            # Write new data
+            set_with_dataframe(
+                worksheet,
+                df,
+                include_index=False,
+                include_column_header=True
+            )
+            print(f"✅ Successfully updated {worksheet.title}")
             return
         except Exception as e:
             print(f"[Sheets] Attempt {attempt} failed: {e}")
             if attempt < retries:
                 time.sleep(delay)
             else:
-                raise
+                print(f"⚠️ Restoring backup for {worksheet.title}...")
+                if backup_data:
+                    worksheet.update("A1", backup_data)
+                raise RuntimeError(f"❌ Failed to update {worksheet.title} after {retries} retries.")
 
 # -------------------- MAIN LOGIC --------------------
 print("Fetching Metabase data...")
-Funnel = fetch_with_retry('https://metabase-lierhfgoeiwhr.newtonschool.co/api/card/8484/query/json', METABASE_HEADERS)
-Input = fetch_with_retry('https://metabase-lierhfgoeiwhr.newtonschool.co/api/card/8495/query/json', METABASE_HEADERS)
-Createdon = fetch_with_retry('https://metabase-lierhfgoeiwhr.newtonschool.co/api/card/8606/query/json', METABASE_HEADERS)
+
+Funnel = fetch_with_retry(f"{METABASE_URL}/api/card/8484/query/json", METABASE_HEADERS)
+Input = fetch_with_retry(f"{METABASE_URL}/api/card/8495/query/json", METABASE_HEADERS)
+Createdon = fetch_with_retry(f"{METABASE_URL}/api/card/8606/query/json", METABASE_HEADERS)
 
 df_Funnel = pd.DataFrame(Funnel.json())
 df_Input = pd.DataFrame(Input.json())
@@ -92,27 +121,24 @@ common_cols = [
     'mx_city', 'event', 'current_stage', 'previous_stage',
     'mx_identifer', 'mx_phoenix_identifer'
 ]
+
 df_Funnel = df_Funnel[common_cols]
 df_Input = df_Input[common_cols + ['call_type', 'duration']]
 df_Createon = df_Createon[common_cols]
 
+# -------------------- SHEETS UPDATE --------------------
 print("Connecting to Google Sheets...")
 sheet = gc.open_by_key(SHEET_KEY)
 ws1, ws2, ws3, ws_pivot = [
     sheet.worksheet(name) for name in [SHEET1_NAME, SHEET2_NAME, SHEET3_NAME, SHEET_PIVOT]
 ]
 
-print("Clearing old data...")
-for ws, rng in [(ws1, 'A:T'), (ws2, 'A:X'), (ws3, 'A:T')]:
-    ws.batch_clear([rng])
-    time.sleep(5)
-
-print("Writing new data...")
-update_with_retry(ws1, df_Funnel)
+print("Updating data safely...")
+safe_update_range(ws1, df_Funnel, "A:T")
 time.sleep(5)
-update_with_retry(ws2, df_Input)
+safe_update_range(ws2, df_Input, "A:X")
 time.sleep(5)
-update_with_retry(ws3, df_Createon)
+safe_update_range(ws3, df_Createon, "A:T")
 
 current_time = datetime.now(ZoneInfo("Asia/Kolkata")).strftime("%d-%b-%Y %H:%M:%S")
 ws_pivot.update("B1", [[current_time]])
