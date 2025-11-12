@@ -2,7 +2,7 @@ name: run Scheduling.py
 
 on:
   schedule:
-    - cron: '*/30 * * * *'  # Runs every 30 minutes (UTC)
+    - cron: '*/20 * * * *'  # Runs every 20 minutes (UTC)
   workflow_dispatch:         # Allows manual trigger from GitHub UI
 
 jobs:
