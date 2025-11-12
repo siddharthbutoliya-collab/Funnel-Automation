@@ -13,7 +13,7 @@ import numpy as np
 from datetime import datetime
 import os
 
-sec = userdata.get('PRABHAT_SECRET_KEY')
+sec = os.getenv("PRABHAT_SECRET_KEY")
 auth.authenticate_user()
 creds, _ = default()
 gc = gspread.authorize(creds)
@@ -127,7 +127,7 @@ df_Createon = df_Createon[
 
 # 4️⃣ Connect to Google Sheets
 print("Connecting to Google Sheets...")
-gc =  os.getenv("SERVICE_AC")
+gc =  os.getenv("SERVICE_ACCOUNT_JSON")
 sheet = gc.open_by_key(SHEET_KEY)
 
 worksheet1 = sheet.worksheet(SHEET1_NAME)
