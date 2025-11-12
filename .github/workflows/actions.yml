@@ -28,20 +28,8 @@ jobs:
         env:
           PRABHAT_SECRET_KEY: ${{ secrets.PRABHAT_SECRET_KEY }}
           SERVICE_ACCOUNT_JSON: ${{ secrets.SERVICE_ACCOUNT_JSON }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: python Scheduling.py
-        working-directory: ./
-
-      - name: Commit generated/modified files (if any)
         run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add -A
-          git diff-index --quiet HEAD || git commit -m "updated logs" --allow-empty
+          echo "🚀 Starting Scheduling.py..."
+          python Scheduling.py
+          echo "✅ Scheduling.py execution complete."
         working-directory: ./
-
-      - name: Push changes
-        uses: ad-m/github-push-action@v0.6.0
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: main
