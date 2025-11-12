@@ -11,7 +11,9 @@ from google.auth import default
 from oauth2client.client import GoogleCredentials
 import numpy as np
 from datetime import datetime
+import os
 
+sec = userdata.get('Prabhat_Secret_Key')
 auth.authenticate_user()
 creds, _ = default()
 gc = gspread.authorize(creds)
@@ -125,7 +127,7 @@ df_Createon = df_Createon[
 
 # 4️⃣ Connect to Google Sheets
 print("Connecting to Google Sheets...")
-gc = gspread.service_account(filename='/content/drive/MyDrive/Service Account Key/service_account_1.json') # assumes credentials.json available
+gc =  os.getenv("GITHUB_RUN_ID")
 sheet = gc.open_by_key(SHEET_KEY)
 
 worksheet1 = sheet.worksheet(SHEET1_NAME)
