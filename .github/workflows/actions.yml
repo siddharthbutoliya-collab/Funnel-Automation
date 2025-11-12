@@ -25,8 +25,8 @@ jobs:
 
       - name: Execute Scheduling.py
         env:
-          METABASE_TOKEN: ${{ secrets. }}
-          GOOGLE_SERVICE_ACCOUNT_KEY: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
+          PRABHAT_SECRET_KEY: ${{ secrets.PRABHAT_SECRET_KEY }}
+          SERVICE_ACCOUNT_JSON: ${{ secrets.SERVICE_ACCOUNT_JSON }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python Scheduling.py
 
