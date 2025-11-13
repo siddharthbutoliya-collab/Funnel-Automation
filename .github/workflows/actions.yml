@@ -1,7 +1,7 @@
 name: Run Scheduling.py
 
 on:
-  # Runs every 20 minutes UTC
+  # Runs every 15 minutes UTC
   schedule:
     - cron: '*/15 * * * *'
   # Manual trigger
