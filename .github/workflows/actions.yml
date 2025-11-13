@@ -3,7 +3,7 @@ name: Run Scheduling.py
 on:
   # Runs every 20 minutes UTC
   schedule:
-    - cron: '*/20 * * * *'
+    - cron: '*/15 * * * *'
   # Manual trigger
   workflow_dispatch:
 
