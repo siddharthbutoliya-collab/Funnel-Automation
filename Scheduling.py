@@ -38,7 +38,7 @@ res = requests.post(
 res.raise_for_status()
 token = res.json()['id']
 METABASE_HEADERS['X-Metabase-Session'] = token
-print(f"✅ Metabase session created: {token}")
+# print(f"✅ Metabase session created: {token}")
 
 SHEET_KEY = '1QCyzrW-Jd5Ny43F7ck7Pk2kJa4nVf7a1KovPj3d8S4c'
 SHEET1_NAME = "Helper StageChange Dump"
