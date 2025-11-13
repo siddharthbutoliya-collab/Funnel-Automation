@@ -1,7 +1,7 @@
 name: Run Scheduling.py
 
 on:
-  # Scheduled trigger: every 20 minutes UTC
+  # Runs every 20 minutes UTC
   schedule:
     - cron: '*/20 * * * *'
   # Manual trigger
@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout the repo
+      # Step 1: Checkout repo
       - name: Checkout repository
         uses: actions/checkout@v2
 
@@ -34,6 +34,8 @@ jobs:
         env:
           PRABHAT_SECRET_KEY: ${{ secrets.PRABHAT_SECRET_KEY }}
           SERVICE_ACCOUNT_JSON: ${{ secrets.SERVICE_ACCOUNT_JSON }}
+          USERNAME: ${{ secrets.USERNAME }}
+          METABASE_URL: ${{ secrets.METABASE_URL }}
         run: |
           LOCK_FILE=".scheduling.lock"
 
@@ -52,6 +54,10 @@ jobs:
           # Create lock file
           touch $LOCK_FILE
           echo "🚀 Starting Scheduling.py..."
+
+          # Print masked environment sanity check (safe logging)
+          echo "Using Metabase URL: ${METABASE_URL:0:25}****"
+          echo "Using USERNAME variable: ${USERNAME:+[SET]}"
 
           # Run your Python script
           python Scheduling.py
