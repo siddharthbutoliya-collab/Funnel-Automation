@@ -17,6 +17,7 @@ start_time = time.time()
 sec = os.getenv("PRABHAT_SECRET_KEY")
 User = os.getenv("USERNAME")
 service_account_json = os.getenv("SERVICE_ACCOUNT_JSON")
+MB_URl = os.getenv("METABASE_URL")
 
 if not sec or not service_account_json:
     raise ValueError("❌ Missing environment variables. Check GitHub secrets.")
@@ -34,7 +35,7 @@ METABASE_HEADERS = {'Content-Type': 'application/json'}
 res = requests.post(
     'https://metabase-lierhfgoeiwhr.newtonschool.co/api/session',
     headers={"Content-Type": "application/json"},
-    json={"username": "prabhat.kumar@newtonschool.co", "password": sec}
+    json={"username": User, "password": sec}
 )
 res.raise_for_status()
 token = res.json()['id']
