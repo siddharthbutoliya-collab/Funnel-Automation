@@ -18,6 +18,13 @@ sec = os.getenv("PRABHAT_SECRET_KEY")
 User_name = os.getenv("USERNAME")
 service_account_json = os.getenv("SERVICE_ACCOUNT_JSON")
 MB_URl = os.getenv("METABASE_URL")
+# -------------------- ENV &  Queries--------------------
+FUNNEL_QUERY_VAR = os.getenv("FUNNEL_QUERY")
+INPUT_QUERY_VAR = os.getenv("INPUT_QUERY")
+CREATEDON_QUERY_VAR = os.getenv("CREATEDON_QUERY")
+
+
+
 
 if not sec or not service_account_json:
     raise ValueError("❌ Missing environment variables. Check GitHub secrets.")
@@ -97,9 +104,9 @@ def safe_update_range(worksheet, df, data_range, retries=5, delay=20):
 print("Fetching Metabase data in parallel...")
 
 urls = {
-    "Funnel": "https://metabase-lierhfgoeiwhr.newtonschool.co/api/card/8484/query/json",
-    "Input": "https://metabase-lierhfgoeiwhr.newtonschool.co/api/card/8495/query/json",
-    "Createdon": "https://metabase-lierhfgoeiwhr.newtonschool.co/api/card/8606/query/json"
+    "Funnel": FUNNEL_QUERY_VAR,
+    "Input": INPUT_QUERY_VAR,
+    "Createdon": CREATEDON_QUERY_VAR
 }
 
 # Run all Metabase queries in parallel
