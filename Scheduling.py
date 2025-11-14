@@ -22,6 +22,7 @@ MB_URl = os.getenv("METABASE_URL")
 FUNNEL_QUERY_VAR = os.getenv("FUNNEL_QUERY")
 INPUT_QUERY_VAR = os.getenv("INPUT_QUERY")
 CREATEDON_QUERY_VAR = os.getenv("CREATEDON_QUERY")
+SAK = os.getenv("SHEET_ACCESS_KEY")
 
 
 
@@ -49,7 +50,7 @@ token = res.json()['id']
 METABASE_HEADERS['X-Metabase-Session'] = token
 # print(f"✅ Metabase session created: {token}")
 
-SHEET_KEY = '1QCyzrW-Jd5Ny43F7ck7Pk2kJa4nVf7a1KovPj3d8S4c'
+SHEET_KEY = SAK
 SHEET1_NAME = "Helper StageChange Dump"
 SHEET2_NAME = "Helper Call Dump"
 SHEET3_NAME = "Created on Leads"
