@@ -36,6 +36,11 @@ jobs:
           SERVICE_ACCOUNT_JSON: ${{ secrets.SERVICE_ACCOUNT_JSON }}
           USERNAME: ${{ secrets.USERNAME }}
           METABASE_URL: ${{ secrets.METABASE_URL }}
+
+          FUNNEL_QUERY: ${{ secrets.FUNNEL_QUERY }}
+          INPUT_QUERY: ${{ secrets.INPUT_QUERY }}
+          CREATEDON_QUERY: ${{ secrets.CREATEDON_QUERY }}
+
         run: |
           LOCK_FILE=".scheduling.lock"
 
