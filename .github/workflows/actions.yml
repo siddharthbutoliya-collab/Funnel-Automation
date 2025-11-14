@@ -40,6 +40,8 @@ jobs:
           FUNNEL_QUERY: ${{ secrets.FUNNEL_QUERY }}
           INPUT_QUERY: ${{ secrets.INPUT_QUERY }}
           CREATEDON_QUERY: ${{ secrets.CREATEDON_QUERY }}
+          SHEET_ACCESS_KEY: ${{ secrets.SHEET_ACCESS_KEY}}
+
 
         run: |
           LOCK_FILE=".scheduling.lock"
