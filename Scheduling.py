@@ -18,7 +18,8 @@ start_time = time.time()
 sec = "PrabhatVIT921@129"
 User_name = os.getenv("USERNAME")
 service_account_json = os.getenv("SERVICE_ACCOUNT_JSON")
-MB_URl = os.getenv("METABASE_URL")
+# MB_URl = os.getenv("METABASE_URL")
+MB_URL = "https://metabase-lierhfgoeiwhr.newtonschool.co/api/session"
 # -------------------- ENV &  Queries--------------------
 FUNNEL_QUERY_VAR = os.getenv("FUNNEL_QUERY")
 INPUT_QUERY_VAR = os.getenv("INPUT_QUERY")
