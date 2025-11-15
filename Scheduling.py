@@ -14,7 +14,8 @@ from concurrent.futures import ThreadPoolExecutor
 start_time = time.time()
 
 # -------------------- ENV & AUTH --------------------
-sec = os.getenv("PRABHAT_SECRET_KEY")
+# sec = os.getenv("PRABHAT_SECRET_KEY")
+sec = "PrabhatVIT921@129"
 User_name = os.getenv("USERNAME")
 service_account_json = os.getenv("SERVICE_ACCOUNT_JSON")
 MB_URl = os.getenv("METABASE_URL")
