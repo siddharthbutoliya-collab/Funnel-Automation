@@ -14,12 +14,11 @@ from concurrent.futures import ThreadPoolExecutor
 start_time = time.time()
 
 # -------------------- ENV & AUTH --------------------
-# sec = os.getenv("PRABHAT_SECRET_KEY")
-sec = "PrabhatVIT921@129"
+sec = os.getenv("PRABHAT_SECRET_KEY")
 User_name = os.getenv("USERNAME")
 service_account_json = os.getenv("SERVICE_ACCOUNT_JSON")
-# MB_URl = os.getenv("METABASE_URL")
-MB_URL = "https://metabase-lierhfgoeiwhr.newtonschool.co/api/session"
+MB_URl = os.getenv("METABASE_URL")
+
 # -------------------- ENV &  Queries--------------------
 FUNNEL_QUERY_VAR = os.getenv("FUNNEL_QUERY")
 INPUT_QUERY_VAR = os.getenv("INPUT_QUERY")
