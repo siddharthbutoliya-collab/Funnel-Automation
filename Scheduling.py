@@ -28,7 +28,7 @@ SAK = os.getenv("SHEET_ACCESS_KEY")
 print(FUNNEL_QUERY_VAR)
 print(INPUT_QUERY_VAR)
 print(CREATEDON_QUERY_VAR)
-print(SHEET_ACCESS_KEY)
+print(SAK)
 print(MB_URL)
 
 
