@@ -25,6 +25,13 @@ INPUT_QUERY_VAR = os.getenv("INPUT_QUERY")
 CREATEDON_QUERY_VAR = os.getenv("CREATEDON_QUERY")
 SAK = os.getenv("SHEET_ACCESS_KEY")
 
+print(FUNNEL_QUERY_VAR)
+print(INPUT_QUERY_VAR)
+print(CREATEDON_QUERy_VAR)
+print(SHEET_ACCESS_KEY)
+print(MB_URL)
+
+
 
 if not sec or not service_account_json:
     raise ValueError("❌ Missing environment variables. Check GitHub secrets.")
