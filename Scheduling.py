@@ -19,12 +19,11 @@ User_name = os.getenv("USERNAME")
 service_account_json = os.getenv("SERVICE_ACCOUNT_JSON")
 MB_URl = os.getenv("METABASE_URL")
 
-# -------------------- ENV &  Queries--------------------
+# -------------------- ONLY THESE TWO QUERIES --------------------
 FUNNEL_QUERY_VAR = os.getenv("FUNNEL_QUERY")
-INPUT_QUERY_VAR = os.getenv("INPUT_QUERY")
 CREATEDON_QUERY_VAR = os.getenv("CREATEDON_QUERY")
-SAK = os.getenv("SHEET_ACCESS_KEY")
 
+SAK = os.getenv("SHEET_ACCESS_KEY")
 
 if not sec or not service_account_json:
     raise ValueError("❌ Missing environment variables. Check GitHub secrets.")
@@ -47,17 +46,10 @@ res = requests.post(
 res.raise_for_status()
 token = res.json()['id']
 METABASE_HEADERS['X-Metabase-Session'] = token
-# print(f"✅ Metabase session created: {token}")
-
-SHEET_KEY = SAK
-SHEET1_NAME = "Helper StageChange Dump"
-SHEET2_NAME = "Helper Call Dump"
-SHEET3_NAME = "Created on Leads"
-SHEET_PIVOT = "New_DS_Summary"
+print("✅ Metabase session created")
 
 # -------------------- UTILITIES --------------------
 def fetch_with_retry(url, headers, retries=5, delay=15):
-    """Fetch data from Metabase with retries."""
     for attempt in range(1, retries + 1):
         try:
             r = requests.post(url, headers=headers, timeout=120)
@@ -71,12 +63,6 @@ def fetch_with_retry(url, headers, retries=5, delay=15):
                 raise
 
 def safe_update_range(worksheet, df, data_range, retries=5, delay=20):
-    """
-    Updates Google Sheet safely:
-    - Backs up current range data.
-    - Tries to write new data.
-    - Restores backup if the update fails.
-    """
     print(f"🔄 Preparing to update {worksheet.title} ({data_range})")
 
     backup_data = worksheet.get(data_range)
@@ -101,21 +87,19 @@ def safe_update_range(worksheet, df, data_range, retries=5, delay=20):
     return success
 
 # -------------------- MAIN LOGIC --------------------
-print("Fetching Metabase data in parallel...")
+print("Fetching StageChange + CreatedOn in parallel...")
 
 urls = {
     "Funnel": FUNNEL_QUERY_VAR,
-    "Input": INPUT_QUERY_VAR,
     "Createdon": CREATEDON_QUERY_VAR
 }
 
-# Run all Metabase queries in parallel
-with ThreadPoolExecutor(max_workers=3) as executor:
+# Run both queries in parallel
+with ThreadPoolExecutor(max_workers=2) as executor:
     futures = {name: executor.submit(fetch_with_retry, url, METABASE_HEADERS) for name, url in urls.items()}
     results = {name: f.result() for name, f in futures.items()}
 
 df_Funnel = pd.DataFrame(results["Funnel"].json())
-df_Input = pd.DataFrame(results["Input"].json())
 df_Createon = pd.DataFrame(results["Createdon"].json())
 
 common_cols = [
@@ -126,25 +110,27 @@ common_cols = [
     'mx_city', 'event', 'current_stage', 'previous_stage',
     'mx_identifer', 'mx_phoenix_identifer'
 ]
+
+# Prepare dataframes
 df_Funnel = df_Funnel[common_cols]
-df_Input = df_Input[common_cols + ['call_type', 'duration']]
 df_Createon = df_Createon[common_cols]
 
 print("Connecting to Google Sheets...")
-sheet = gc.open_by_key(SHEET_KEY)
-ws1, ws2, ws3, ws_pivot = [
-    sheet.worksheet(name) for name in [SHEET1_NAME, SHEET2_NAME, SHEET3_NAME, SHEET_PIVOT]
-]
+sheet = gc.open_by_key(SAK)
+ws1 = sheet.worksheet("Helper StageChange Dump")
+ws3 = sheet.worksheet("Created on Leads")
+ws_pivot = sheet.worksheet("New_DS_Summary")
 
-# Skip clearing — directly update safely
-print("Updating data safely...")
+# -------------------- UPDATE SHEETS --------------------
+print("Updating StageChange Dump...")
 safe_update_range(ws1, df_Funnel, "A:T")
+
 time.sleep(3)
-safe_update_range(ws2, df_Input, "A:X")
-time.sleep(3)
+
+print("Updating CreatedOn Dump...")
 safe_update_range(ws3, df_Createon, "A:T")
 
-# Update pivot timestamp
+# -------------------- UPDATE TIMESTAMP --------------------
 current_time = datetime.now(ZoneInfo("Asia/Kolkata")).strftime("%d-%b-%Y %H:%M:%S")
 ws_pivot.update("B1", [[current_time]])
 print(f"✅ Updated timestamp: {current_time}")
@@ -154,5 +140,4 @@ end_time = time.time()
 elapsed_time = end_time - start_time
 mins, secs = divmod(elapsed_time, 60)
 print(f"⏱ Total time taken: {int(mins)}m {int(secs)}s")
-
-print("🎯 All tasks completed successfully!")
+print("🎯 StageChange + CreatedOn tasks completed successfully!")
